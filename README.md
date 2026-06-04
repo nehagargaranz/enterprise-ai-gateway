@@ -2,7 +2,7 @@
 
 An enterprise gateway for large language models — built as infrastructure-as-code on Azure API Management, with cost control, per-team governance, and usage visibility. The model backend is **pluggable across providers** (Azure / Foundry, OpenAI, Anthropic, Amazon Bedrock, or self-hosted) — any endpoint exposing an OpenAI-compatible or Anthropic-schema API.
 
-> Built by an integration architect to explore the GenAI gateway pattern from an enterprise integration and governance angle. It's a proof of concept, not a production system (see [Production considerations](https://github.com/nehagargaranz/enterprise-ai-gateway/edit/main/README.md#production-considerations)). It builds on Azure API Management's documented [AI gateway capabilities](https://learn.microsoft.com/en-us/azure/api-management/genai-gateway-capabilities) — so the value here is in the design decisions (which capabilities matter, the tradeoffs behind each, and a coherent reference you can reason about end to end) rather than the infrastructure code itself.
+> Built by an integration architect to explore the GenAI gateway pattern from an enterprise integration and governance angle. It's a proof of concept, not a production system (see [Production considerations](#production-considerations)). It builds on Azure API Management's documented [AI gateway capabilities](https://learn.microsoft.com/en-us/azure/api-management/genai-gateway-capabilities) — so the value here is in the design decisions (which capabilities matter, the tradeoffs behind each, and a coherent reference you can reason about end to end) rather than the infrastructure code itself.
 
 ---
 
