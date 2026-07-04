@@ -60,7 +60,7 @@ Microsoft Foundry can now wire up an API Management gateway from the portal with
 Built in public, one milestone at a time. Each milestone leaves the repo in a working, documented state.
 
 - [x] **M0 — Architecture & design** (this README and diagram)
-- [ ] **M1 — Pluggable model entry point** — API Management in front of a model endpoint, authenticated outward, in Terraform
+- [x] **M1 — Pluggable model entry point** — API Management in front of a model endpoint, authenticated outward, in Terraform
 - [ ] **M2 — Per-team access & token rate limiting** — products, subscriptions, and per-consumer token caps
 - [ ] **M3 — Usage metrics & cost-attribution view** — token metrics to Application Insights with a per-team breakdown
 - [ ] **M4 — Load balancing & failover** *(stretch)* — routing across multiple model providers
