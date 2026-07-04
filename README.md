@@ -96,14 +96,14 @@ physically works.
 The call below succeeds carrying only the gateway subscription key. No model key
 is present, because none exists:
 
-![Successful keyless call through the gateway](docs/M1_Output.png)
+![Successful keyless call through the gateway](docs/images/M1_Output.png)
 
 The `usage` block in the response (`prompt_tokens`, `completion_tokens`,
 `total_tokens`) is the raw signal that M3 will capture and attribute per consumer.
 
-![Tokens Usage](docs/M1_Output_tokensUsage.png)
+![Tokens Usage](docs/images/M1_Output_tokensUsage.png)
 
-![Model Keys Disabled](docs/M1_Output_ModelKeys_Disabled.png)
+![Model Keys Disabled](docs/images/M1_Output_ModelKeys_Disabled.png)
 
 ## References & prior art
 
