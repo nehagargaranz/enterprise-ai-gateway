@@ -1,0 +1,31 @@
+<!--
+  M1 inbound policy.
+  ${backend_id} is injected by Terraform (templatefile) from the backend resource.
+-->
+<policies>
+  <inbound>
+    <base />
+
+    <!-- Route the request to the Azure OpenAI backend. -->
+    <set-backend-service backend-id="${backend_id}" />
+
+    <!--
+      Authenticate OUTWARD to the model using API Management's own managed identity.
+      API Management fetches an Entra token for the Cognitive Services audience and
+      attaches it as the Authorization header. The caller never holds a model key.
+    -->
+    <authentication-managed-identity resource="https://cognitiveservices.azure.com" />
+  </inbound>
+
+  <backend>
+    <base />
+  </backend>
+
+  <outbound>
+    <base />
+  </outbound>
+
+  <on-error>
+    <base />
+  </on-error>
+</policies>
