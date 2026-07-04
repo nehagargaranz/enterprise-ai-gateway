@@ -1,0 +1,6 @@
+subscription_id = "bf31e2d4-0a21-437e-84b3-07e7f8be57f8"
+location        = "australiaeast"
+name_prefix     = "aigw-ng24"
+model_name         = "o4-mini"
+model_version      = "2025-04-16"
+openai_api_version = "2025-04-01-preview"
