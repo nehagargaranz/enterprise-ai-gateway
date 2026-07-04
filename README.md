@@ -80,6 +80,31 @@ This is a POC focused on the gateway pattern itself. A production deployment wou
 - Content-safety moderation on prompts and completions
 - Centralised secrets and certificate management, aligned to the organisation's data policy
 
+## M1 — Pluggable model entry point ✅
+
+The gateway is live: consumers reach the model **only** through API Management,
+and no model key exists anywhere in the flow.
+
+A request goes `app → API Management → model`. The app presents its own gateway
+subscription key; API Management then authenticates outward to the model with its
+**system-assigned managed identity**. Key-based auth on the model is switched off
+entirely (`local_auth_enabled = false`), so the model has no usable key to leak,
+paste into a config, or pass around. The gateway's identity — granted the
+least-privilege `Cognitive Services OpenAI User` role — is the only path that
+physically works.
+
+The call below succeeds carrying only the gateway subscription key. No model key
+is present, because none exists:
+
+![Successful keyless call through the gateway](docs/M1_Output.png)
+
+The `usage` block in the response (`prompt_tokens`, `completion_tokens`,
+`total_tokens`) is the raw signal that M3 will capture and attribute per consumer.
+
+![Tokens Usage](docs/M1_Output_tokensUsage.png)
+
+![Model Keys Disabled](docs/M1_Output_ModelKeys_Disabled.png)
+
 ## References & prior art
 
 This project stands on documented patterns and official tooling:
