@@ -61,7 +61,7 @@ Built in public, one milestone at a time. Each milestone leaves the repo in a wo
 
 - [x] **M0 — Architecture & design** (this README and diagram)
 - [x] **M1 — Pluggable model entry point** — API Management in front of a model endpoint, authenticated outward, in Terraform
-- [ ] **M2 — Per-team access & token rate limiting** — products, subscriptions, and per-consumer token caps
+- [x] **M2 — Per-team access & token rate limiting** — products, subscriptions, and per-consumer token caps
 - [ ] **M3 — Usage metrics & cost-attribution view** — token metrics to Application Insights with a per-team breakdown
 - [ ] **M4 — Load balancing & failover** *(stretch)* — routing across multiple model providers
 
@@ -104,6 +104,30 @@ The `usage` block in the response (`prompt_tokens`, `completion_tokens`,
 ![Tokens Usage](docs/images/M1_Output_tokensUsage.png)
 
 ![Model Keys Disabled](docs/images/M1_Output_ModelKeys_Disabled.png)
+
+## M2 — Per-team access & token rate limiting ✅
+
+Each consuming team is now a separate walled-off consumer with its own key and
+its own token budget — so one team's runaway usage can't quietly drain the shared
+model spend that everyone else depends on.
+
+Every team is modelled as an API Management **product** with its own subscription
+key. A per-team `llm-token-limit` policy, keyed on the subscription ID, gives each
+team an independent token bucket: when a team exceeds its rate, its callers get a
+`429` while every other team keeps working. Caps are tuned per team in a single
+`teams` map — adding, removing, or re-tuning a team is a one-line change, nothing
+else. That's the "control each team's limits to its own cost and security needs"
+principle, made real.
+
+The demo below hammers Team A (a deliberately low cap) until it trips. The first
+calls return `200` with the token budget counting down, then the cap kicks in and
+Team A gets `429`. Team B — a separate team with its own budget — keeps returning
+`200` throughout, proving the isolation:
+
+![Team A rate-limited while Team B keeps working](docs/images/M2_Ouput_token_limit)
+
+One team throttled, another untouched, on the same gateway — governance, not just
+a secure pipe.
 
 ## References & prior art
 
