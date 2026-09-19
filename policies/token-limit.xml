@@ -1,0 +1,31 @@
+<!--
+  M2 per-team token cap. ${tokens_per_minute} is injected by Terraform per team.
+
+  Keyed on the subscription ID, so each team gets its own independent bucket —
+  one team hitting its limit doesn't affect another. When a team exceeds its
+  rate, the caller gets HTTP 429. The x-remaining-tokens response header lets
+  you watch the budget count down.
+
+  This runs at PRODUCT scope. The <base /> in the M1 API-scope policy pulls it
+  in, so the order is: check the team's token budget here first, then (if within
+  budget) authenticate outward and call the model.
+-->
+<policies>
+  <inbound>
+    <base />
+    <llm-token-limit
+        counter-key="@(context.Subscription.Id)"
+        tokens-per-minute="${tokens_per_minute}"
+        estimate-prompt-tokens="false"
+        remaining-tokens-header-name="x-remaining-tokens" />
+  </inbound>
+  <backend>
+    <base />
+  </backend>
+  <outbound>
+    <base />
+  </outbound>
+  <on-error>
+    <base />
+  </on-error>
+</policies>

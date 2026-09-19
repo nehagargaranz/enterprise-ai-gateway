@@ -3,7 +3,7 @@ terraform {
 
   required_providers {
     azurerm = {
-      source  = "hashicorp/azurerm"
+      source = "hashicorp/azurerm"
       # v4 is current. If your pinned azurerm is older and the v2 API Management
       # SKU strings below aren't recognised, bump this or fall back to "Developer_1".
       version = "~> 4.0"
@@ -14,5 +14,6 @@ terraform {
 provider "azurerm" {
   features {}
   # azurerm v4 wants the subscription explicitly. Use your PERSONAL subscription.
-  subscription_id = var.subscription_id
+  subscription_id                 = var.subscription_id
+  resource_provider_registrations = "none"
 }

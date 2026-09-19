@@ -50,13 +50,13 @@ variable "publisher_email" {
 variable "model_name" {
   description = "Model to deploy."
   type        = string
-  default     = "gpt-4o-mini" // it is in deprecating state — Azure blocks new deployments of deprecated model versions
+  default     = "gpt-5-nano"
 }
 
 variable "model_version" {
   description = "Model version — VERIFY this is available in your region; versions change."
   type        = string
-  default     = "2024-07-18"
+  default     = "2025-08-07"
 }
 
 variable "model_capacity" {

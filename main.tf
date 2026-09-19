@@ -122,15 +122,3 @@ resource "azurerm_api_management_api_policy" "ai" {
     backend_id = azurerm_api_management_backend.openai.name
   })
 }
-
-# A single demo subscription so you have a usable key to test with.
-# M2 replaces this with per-team products + subscriptions.
-resource "azurerm_api_management_subscription" "demo" {
-  resource_group_name = azurerm_resource_group.this.name
-  api_management_name = azurerm_api_management.this.name
-  display_name        = "demo-consumer"
-  # Strip the ;rev=N suffix — APIM only validates subscription keys for
-  # scope paths without a revision, even when rev=1 is the current revision.
-  api_id              = replace(azurerm_api_management_api.ai.id, ";rev=${azurerm_api_management_api.ai.revision}", "")
-  state               = "active"
-}
