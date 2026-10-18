@@ -62,7 +62,7 @@ Built in public, one milestone at a time. Each milestone leaves the repo in a wo
 - [x] **M0 — Architecture & design** (this README and diagram)
 - [x] **M1 — Pluggable model entry point** — API Management in front of a model endpoint, authenticated outward, in Terraform
 - [x] **M2 — Per-team access & token rate limiting** — products, subscriptions, and per-consumer token caps
-- [ ] **M3 — Usage metrics & cost-attribution view** — token metrics to Application Insights with a per-team breakdown
+- [x] **M3 — Usage metrics & cost-attribution view** — token metrics to Application Insights with a per-team breakdown
 - [ ] **M4 — Load balancing & failover** *(stretch)* — routing across multiple model providers
 
 ## Getting started
@@ -99,7 +99,7 @@ is present, because none exists:
 ![Successful keyless call through the gateway](docs/images/M1_Output.png)
 
 The `usage` block in the response (`prompt_tokens`, `completion_tokens`,
-`total_tokens`) is the raw signal that M3 will capture and attribute per consumer.
+`total_tokens`) is the raw signal that M3 captures and attributes per consumer.
 
 ![Tokens Usage](docs/images/M1_Output_tokensUsage.png)
 
@@ -129,11 +129,29 @@ Team A gets `429`. Team B — a separate team with its own budget — keeps retu
 One team throttled, another untouched, on the same gateway — governance, not just
 a secure pipe.
 
+## M3 — Usage metrics & cost attribution ✅
+
+M2 can stop a team that runs past its cap. It still leaves finance with one
+number, and nothing on it says which team consumed the tokens that did go
+through.
+
+Every call that reaches the model writes its token usage — prompt, completion,
+and total — labelled with the team on the key. A throttled call never reaches
+the model, so it is not counted as spend. The prompts and completions
+themselves are not stored. The record is the usage, not the conversation.
+Tokens are the unit. What they cost follows from the token price.
+
+The check calls the same model as both teams, then reads the totals back.
+Two rows. Team A is the larger one, because it had called more:
+
+![Two teams, two token totals](docs/images/M3_Ouput_teams_token_usage.png)
+
 ## References & prior art
 
 This project stands on documented patterns and official tooling:
 
 - [AI gateway capabilities in Azure API Management](https://learn.microsoft.com/en-us/azure/api-management/genai-gateway-capabilities) — the canonical capability reference
+- [Emit token metric policy](https://learn.microsoft.com/en-us/azure/api-management/llm-emit-token-metric-policy) — the policy M3 uses to record per-team usage
 - [Configure AI gateway in Microsoft Foundry](https://learn.microsoft.com/en-us/azure/foundry/configuration/enable-ai-api-management-gateway-portal) — the built-in, portal-driven alternative
 - [AI gateway reference architecture using API Management](https://learn.microsoft.com/en-us/ai/playbook/technology-guidance/generative-ai/dev-starters/genai-gateway/reference-architectures/apim-based) — Microsoft's reference design
 - [Azure-Samples/apim-genai-gateway-toolkit](https://github.com/Azure-Samples/apim-genai-gateway-toolkit) — example policies and starters

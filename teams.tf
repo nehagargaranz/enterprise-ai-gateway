@@ -69,9 +69,3 @@ resource "azurerm_api_management_subscription" "team" {
   product_id          = azurerm_api_management_product.team[each.key].id
   state               = "active"
 }
-
-output "team_subscription_keys" {
-  description = "Per-team subscription keys. Send as the 'Ocp-Apim-Subscription-Key' header."
-  value       = { for k, s in azurerm_api_management_subscription.team : k => s.primary_key }
-  sensitive   = true
-}

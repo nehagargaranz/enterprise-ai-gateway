@@ -8,7 +8,17 @@ terraform {
       # SKU strings below aren't recognised, bump this or fall back to "Developer_1".
       version = "~> 4.0"
     }
+    # azurerm's diagnostic resource cannot enable custom metrics (it calls an
+    # API version that has no `metrics` field). azapi sets that one flag.
+    azapi = {
+      source  = "Azure/azapi"
+      version = "~> 2.0"
+    }
   }
+}
+
+provider "azapi" {
+  subscription_id = var.subscription_id
 }
 
 provider "azurerm" {

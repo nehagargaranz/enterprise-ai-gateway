@@ -112,13 +112,13 @@ resource "azurerm_api_management_api_operation" "chat" {
 }
 
 # The heart of M1: route to the model and authenticate outward with the
-# managed identity. The policy XML lives in ./policies/inbound-auth.xml.
+# managed identity. The policy XML lives in ./policies/api-policy.xml.
 resource "azurerm_api_management_api_policy" "ai" {
   api_name            = azurerm_api_management_api.ai.name
   api_management_name = azurerm_api_management.this.name
   resource_group_name = azurerm_resource_group.this.name
 
-  xml_content = templatefile("${path.module}/policies/inbound-auth.xml", {
+  xml_content = templatefile("${path.module}/policies/api-policy.xml", {
     backend_id = azurerm_api_management_backend.openai.name
   })
 }

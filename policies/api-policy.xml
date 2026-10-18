@@ -1,10 +1,24 @@
 <!--
-  M1 inbound policy.
+  API-scope policy.
+  M1: route to the model and authenticate outward with the managed identity.
+  M3: record tokens against the calling team.
   ${backend_id} is injected by Terraform (templatefile) from the backend resource.
 -->
 <policies>
   <inbound>
+    <!-- Product scope runs first: M2's per-team token cap. A call that is
+         already over its cap returns 429 here and never reaches the model,
+         so it is not recorded as spend. -->
     <base />
+
+    <!--
+      M3. Tag whatever this call consumes with the team on the key.
+      The policy reads the usage block on the model response (non-streaming).
+      Prompt text is not part of the metric.
+    -->
+    <llm-emit-token-metric namespace="ai-gateway">
+      <dimension name="Team" value="@(context.Product != null ? context.Product.Name : &quot;unattributed&quot;)" />
+    </llm-emit-token-metric>
 
     <!-- Route the request to the Azure OpenAI backend. -->
     <set-backend-service backend-id="${backend_id}" />
