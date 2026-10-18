@@ -119,12 +119,16 @@ team an independent token bucket: when a team exceeds its rate, its callers get 
 else. That's the "control each team's limits to its own cost and security needs"
 principle, made real.
 
+![Different Product per team](docs/images/M2_Ouput_teams.png)
+
+![Different Subscription per team](docs/images/M2_Ouput_subscriptions.png)
+
 The demo below hammers Team A (a deliberately low cap) until it trips. The first
 calls return `200` with the token budget counting down, then the cap kicks in and
 Team A gets `429`. Team B — a separate team with its own budget — keeps returning
 `200` throughout, proving the isolation:
 
-![Team A rate-limited while Team B keeps working](docs/images/M2_Ouput_token_limit)
+![Team A rate-limited while Team B keeps working](docs/images/M2_Ouput_token_limit.png)
 
 One team throttled, another untouched, on the same gateway — governance, not just
 a secure pipe.
