@@ -70,16 +70,8 @@ resource "azurerm_role_assignment" "apim_to_openai" {
   principal_id         = azurerm_api_management.this.identity[0].principal_id
 }
 
-# --- Backend, API, operation, policy ------------------------------------------
-
-resource "azurerm_api_management_backend" "openai" {
-  name                = "openai-backend"
-  resource_group_name = azurerm_resource_group.this.name
-  api_management_name = azurerm_api_management.this.name
-  protocol            = "http"
-  # The /openai base path on the model endpoint.
-  url = "${azurerm_cognitive_account.openai.endpoint}openai"
-}
+# --- API, operation, policy ---------------------------------------------------
+# Backends live in backends.tf. M4 tries a preferred one, then a fallback.
 
 resource "azurerm_api_management_api" "ai" {
   name                  = "ai-gateway"
@@ -111,14 +103,15 @@ resource "azurerm_api_management_api_operation" "chat" {
   }
 }
 
-# The heart of M1: route to the model and authenticate outward with the
-# managed identity. The policy XML lives in ./policies/api-policy.xml.
+# The API policy: authenticate outward, record tokens, and fail over.
+# The policy XML lives in ./policies/api-policy.xml.
 resource "azurerm_api_management_api_policy" "ai" {
   api_name            = azurerm_api_management_api.ai.name
   api_management_name = azurerm_api_management.this.name
   resource_group_name = azurerm_resource_group.this.name
 
   xml_content = templatefile("${path.module}/policies/api-policy.xml", {
-    backend_id = azurerm_api_management_backend.openai.name
+    preferred_backend_id = azurerm_api_management_backend.preferred.name
+    fallback_backend_id  = azurerm_api_management_backend.fallback.name
   })
 }

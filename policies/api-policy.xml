@@ -1,14 +1,15 @@
 <!--
   API-scope policy.
-  M1: route to the model and authenticate outward with the managed identity.
+  M1: authenticate outward with the managed identity.
   M3: record tokens against the calling team.
-  ${backend_id} is injected by Terraform (templatefile) from the backend resource.
+  M4: try the preferred backend, then the fallback.
+  ${preferred_backend_id} and ${fallback_backend_id} are injected by Terraform.
 -->
 <policies>
   <inbound>
     <!-- Product scope runs first: M2's per-team token cap. A call that is
-         already over its cap returns 429 here and never reaches the model,
-         so it is not recorded as spend. -->
+         already over its cap returns 429 here and never reaches a model,
+         so it is not recorded as spend and does not fail over. -->
     <base />
 
     <!--
@@ -20,23 +21,48 @@
       <dimension name="Team" value="@(context.Product != null ? context.Product.Name : &quot;unattributed&quot;)" />
     </llm-emit-token-metric>
 
-    <!-- Route the request to the Azure OpenAI backend. -->
-    <set-backend-service backend-id="${backend_id}" />
+    <!--
+      The public URL still carries a deployment name. The gateway ignores it
+      and chooses the backend. The deployment is part of each backend's URL.
+    -->
+    <rewrite-uri template="/chat/completions" copy-unmatched-params="true" />
 
     <!--
       Authenticate OUTWARD to the model using API Management's own managed identity.
       API Management fetches an Entra token for the Cognitive Services audience and
       attaches it as the Authorization header. The caller never holds a model key.
+      Both backends are the same account, so this token is valid for either hop.
     -->
     <authentication-managed-identity resource="https://cognitiveservices.azure.com" />
   </inbound>
 
   <backend>
-    <base />
+    <!--
+      M4. First attempt is the preferred backend. On 404, 429, or a server
+      error, one immediate retry goes to the fallback. buffer-request-body
+      keeps the prompt available for that second hop. The caller sees the
+      fallback's answer, not the failed hop.
+    -->
+    <retry condition="@(context.Response.StatusCode == 404 || context.Response.StatusCode == 429 || context.Response.StatusCode >= 500)" count="1" interval="0" first-fast-retry="true">
+      <choose>
+        <when condition="@(context.Variables.ContainsKey(&quot;ai-backend&quot;) == false)">
+          <set-variable name="ai-backend" value="preferred" />
+          <set-backend-service backend-id="${preferred_backend_id}" />
+        </when>
+        <otherwise>
+          <set-variable name="ai-backend" value="fallback" />
+          <set-backend-service backend-id="${fallback_backend_id}" />
+        </otherwise>
+      </choose>
+      <forward-request timeout="120" buffer-request-body="true" />
+    </retry>
   </backend>
 
   <outbound>
     <base />
+    <set-header name="x-ai-backend" exists-action="override">
+      <value>@(context.Variables.GetValueOrDefault&lt;string&gt;(&quot;ai-backend&quot;, &quot;unknown&quot;))</value>
+    </set-header>
   </outbound>
 
   <on-error>

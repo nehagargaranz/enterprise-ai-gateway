@@ -65,6 +65,16 @@ variable "model_capacity" {
   default     = 10
 }
 
+variable "preferred_deployment_name" {
+  description = <<-EOT
+    Deployment the gateway tries first. This name is not deployed, so the first
+    hop fails and the call fails over to model_name. It is the stand-in for a
+    backend that is down, so the failover can be seen on one call.
+  EOT
+  type        = string
+  default     = "unavailable"
+}
+
 variable "openai_api_version" {
   description = "Azure OpenAI data-plane API version used in the gateway URL output."
   type        = string

@@ -42,7 +42,7 @@ Each consuming team calls the gateway with its own credential. The gateway authe
 | Per-team access & cost attribution | Each team gets its own API Management subscription key; usage is metered per consumer |
 | Spend control | The `llm-token-limit` policy caps tokens per consumer |
 | Usage visibility | The `llm-emit-token-metric` policy sends per-team token metrics to Application Insights |
-| Resilience *(stretch)* | Backend load balancing and circuit breaker across multiple providers |
+| Failover | Preferred backend first. On 404, 429, or a server error, one retry to the next backend. A circuit breaker opens on the backend that failed. |
 
 ## Tech stack
 
@@ -63,7 +63,7 @@ Built in public, one milestone at a time. Each milestone leaves the repo in a wo
 - [x] **M1 — Pluggable model entry point** — API Management in front of a model endpoint, authenticated outward, in Terraform
 - [x] **M2 — Per-team access & token rate limiting** — products, subscriptions, and per-consumer token caps
 - [x] **M3 — Usage metrics & cost-attribution view** — token metrics to Application Insights with a per-team breakdown
-- [ ] **M4 — Load balancing & failover** *(stretch)* — routing across multiple model providers
+- [x] **M4 — Failover** — if the preferred backend fails, the next one serves the call
 
 ## Getting started
 
@@ -149,6 +149,27 @@ The check calls the same model as both teams, then reads the totals back.
 Two rows. Team A is the larger one, because it had called more:
 
 ![Two teams, two token totals](docs/images/M3_Ouput_teams_token_usage.png)
+
+## M4 — Failover ✅
+
+When the backend the gateway tries first is gone, or throttling, the call
+used to die with it. The app had nothing else to ask.
+
+The gateway now tries a preferred backend, and if that hop returns 404, 429,
+or a server error it retries the next backend once. The caller gets that
+answer. A circuit breaker on the preferred backend opens after one failure,
+so the following call is served by the fallback.
+
+The preferred backend in this POC names a deployment that was never created.
+That is the stand-in for a backend that is down, the same idea as Team A's
+low cap: a failure you can see on one call. The fallback is the live model.
+Both are the same account, and the gateway's managed identity is the only
+credential on either hop.
+
+`m4_show_failover.ps1` makes one call. The status is 200, and the response
+header `x-ai-backend` is `fallback`:
+
+![Caller got an answer from the fallback](docs/images/M4_Ouput_failover.png)
 
 ## References & prior art
 
